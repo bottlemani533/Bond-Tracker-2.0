@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Bond Payout Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#1A1040"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Bond Payout"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" href="icon-192.png"/>
+<style>
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:300;font-display:swap;src:url('fonts/dm-sans-latin-300-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/dm-sans-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/dm-sans-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/dm-sans-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/dm-sans-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/dm-sans-latin-800-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/jetbrains-mono-latin-600-normal.woff2') format('woff2');}
+</style>
+<style>
+:root {
+  --bg-grad-top: #C9B8E8;
+  --bg-grad-bot: #F0EBFA;
+  --navy: #1A1040;
+  --navy-mid: #2D1F6E;
+  --purple: #6B3FA0;
+  --purple-light: #9B72D0;
+  --green: #22C55E;
+  --green-lime: #7ED321;
+  --sky: #4FC3F7;
+  --amber: #FBBF24;
+  --red: #F87171;
+  --white: #FFFFFF;
+  --text-sec-dark: #B8A9D9;
+  --text-sec-light: #7B6FA0;
+  --text-navy: #1A1040;
+  --border-light: #E8DFF5;
+  --card-light: #FFFFFF;
+  --lavender: #F5F0FF;
+  --lavender-mid: #EAE0FF;
+  --font-main: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-card: 16px;
+  --radius-sm: 10px;
+  --nav-h: 68px;
+  --topbar-h: 64px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:var(--font-main);}
+body{background:linear-gradient(180deg,var(--bg-grad-top) 0%,var(--bg-grad-bot) 100%);min-height:100vh;}
+
+/* ===== APP SHELL ===== */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+/* topbar removed — replaced with page-level title bars */
+.topbar{display:none;}
+
+/* ===== PAGES ===== */
+.pages{flex:1;overflow:hidden;position:relative;}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding-bottom:calc(var(--nav-h) + 10px);}
+.page.active{display:block;}
+.page-content{padding:0 14px 16px;}
+.user-greeting{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+.user-greeting .greet-left{display:flex;flex-direction:column;}
+.user-greeting .greet-hi{font-size:11px;font-weight:500;color:var(--text-sec-light);letter-spacing:.3px;}
+.user-greeting .greet-name{font-size:15px;font-weight:800;color:var(--text-navy);letter-spacing:-.2px;margin-top:0px;}
+.user-greeting .greet-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;letter-spacing:0;flex-shrink:0;}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{height:var(--nav-h);background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-top:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;padding:0 4px 4px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:var(--font-main);}
+.nav-item.active{background:var(--green);padding:8px 18px;}
+.nav-item svg{width:22px;height:22px;stroke:var(--text-sec-light);transition:stroke .2s;}
+.nav-item.active svg{stroke:white;}
+.nav-item span{font-size:11px;font-weight:500;color:var(--text-sec-light);transition:color .2s;}
+.nav-item.active span{color:white;font-weight:700;}
+
+/* ===== HERO CARD ===== */
+.hero-card{background:var(--navy);border-radius:20px;padding:20px;margin:0 0 14px;color:white;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(107,63,160,0.3);border-radius:50%;}
+.hero-card::after{content:'';position:absolute;bottom:-20px;left:40px;width:80px;height:80px;background:rgba(34,197,94,0.1);border-radius:50%;}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;position:relative;}
+.hero-kpi h3{font-size:11px;font-weight:500;color:var(--text-sec-dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.hero-kpi .val{font-size:22px;font-weight:800;color:white;font-family:var(--font-main);}
+.hero-kpi .val.green{color:var(--green-lime);}
+.hero-divider{width:1px;height:50px;background:rgba(255,255,255,0.15);margin:0 12px;}
+.hero-bottom{background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.hero-bottom .next-amt{font-size:18px;font-weight:700;color:white;}
+.hero-bottom .next-date{font-size:12px;color:var(--text-sec-dark);margin-top:1px;}
+.arrow-btn{width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;flex-shrink:0;}
+
+/* ===== KPI PILLS ===== */
+.kpi-pills{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.kpi-pills::-webkit-scrollbar{display:none;}
+.kpi-pill{background:rgba(255,255,255,0.75);border:1px solid var(--border-light);border-radius:20px;padding:7px 14px;white-space:nowrap;flex-shrink:0;}
+.kpi-pill .pl{font-size:11px;color:var(--text-sec-light);font-weight:500;}
+.kpi-pill .pv{font-size:13px;font-weight:700;color:var(--text-navy);}
+
+/* ===== SECTION HEADER ===== */
+.sec-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.sec-icon{width:26px;height:26px;background:rgba(107,63,160,0.12);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.sec-icon svg{width:14px;height:14px;stroke:var(--purple);}
+.sec-title{font-size:17px;font-weight:700;color:var(--text-navy);}
+.sec-badge{background:var(--purple);color:white;border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px;margin-left:auto;}
+
+/* ===== BOND CARDS ===== */
+.bond-card{background:var(--card-light);border:1px solid var(--border-light);border-radius:var(--radius-card);padding:14px;margin-bottom:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.bond-card:active{transform:scale(.98);}
+.bond-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.bond-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white;flex-shrink:0;}
+.bond-name-row{flex:1;min-width:0;}
+.bond-name{font-size:13px;font-weight:700;color:var(--text-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bond-isin{font-size:11px;font-family:var(--font-mono);color:var(--text-sec-light);margin-top:1px;}
+.rating-pill{border-radius:20px;font-size:10px;font-weight:700;padding:2px 8px;margin-top:4px;display:inline-block;}
+.rating-green{background:#DCFCE7;color:#15803D;}
+.rating-yellow{background:#FEF9C3;color:#A16207;}
+.rating-red{background:#FEE2E2;color:#B91C1C;}
+.bond-stats{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.bond-stat{background:var(--lavender);border-radius:8px;padding:5px 10px;}
+.bond-stat .sl{font-size:10px;color:var(--text-sec-light);font-weight:500;}
+.bond-stat .sv{font-size:13px;font-weight:700;}
+.sv.green{color:var(--green);}
+.sv.purple{color:var(--purple);}
+.bond-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--text-sec-light);}
+.bond-meta span{display:flex;align-items:center;gap:3px;}
+.form15-badge{border-radius:20px;font-size:10px;font-weight:600;padding:2px 8px;}
+.form15-ok{background:#DCFCE7;color:#15803D;}
+.form15-no{background:#FEF3C7;color:#92400E;}
+
+/* ===== FAB ===== */
+.fab{position:fixed;bottom:calc(var(--nav-h) + 14px);right:18px;width:52px;height:52px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(34,197,94,0.4);border:none;cursor:pointer;z-index:50;transition:transform .2s;}
+.fab:active{transform:scale(.92);}
+.fab svg{width:24px;height:24px;stroke:white;}
+
+/* ===== CALENDAR ===== */
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;position:sticky;top:0;background:linear-gradient(180deg,#C9B8E8 0%,rgba(201,184,232,0.95) 100%);z-index:5;}
+.cal-nav-btn{width:36px;height:36px;background:rgba(255,255,255,0.7);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.cal-title{font-size:20px;font-weight:800;color:var(--text-navy);}
+.cal-summary-btn{display:none;}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:0;margin-bottom:4px;}
+.cal-dow span{font-size:10px;font-weight:600;color:var(--text-sec-light);padding:4px 0;letter-spacing:.3px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-cell{min-height:72px;border-radius:10px;padding:4px 5px;position:relative;cursor:pointer;transition:opacity .15s;}
+.cal-cell:active{opacity:.8;}
+.cal-cell.empty-cell{background:var(--lavender);border:1px solid rgba(107,63,160,0.06);}
+.cal-cell.other-month{opacity:.4;}
+.cal-cell.has-payout{}
+.cal-cell.payout-interest{background:rgba(34,197,94,0.13);border:1px solid rgba(34,197,94,0.2);}
+.cal-cell.payout-principal{background:rgba(79,195,247,0.18);border:1px solid rgba(79,195,247,0.25);}
+.cal-cell.payout-multi{background:rgba(251,191,36,0.18);border:1px solid rgba(251,191,36,0.3);}
+.cal-cell.today{outline:2.5px solid var(--green);outline-offset:-2px;border-radius:10px;}
+.cal-cell.today .cal-day{background:var(--green);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.cal-cell.today.empty-cell{background:rgba(34,197,94,0.07);}
+.cal-day{font-size:11px;font-weight:600;color:var(--text-navy);margin-bottom:2px;}
+.cal-amt{font-size:10.5px;font-weight:800;line-height:1.2;margin-top:2px;}
+.cal-amt.green{color:#15803D;}
+.cal-amt.blue{color:#0369A1;}
+.cal-amt.amber{color:#92400E;}
+.cal-bond-name{font-size:9px;color:var(--text-navy);line-height:1.2;margin-top:1px;word-break:break-word;}
+
+/* ===== CALENDAR FOOTER ===== */
+.cal-footer{position:fixed;bottom:var(--nav-h);left:0;right:0;background:var(--navy);padding:10px 16px;z-index:8;}
+.cal-footer-title{font-size:10px;color:var(--text-sec-dark);font-weight:500;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.cal-footer-vals{display:flex;gap:16px;}
+.cal-fv span:first-child{font-size:10px;color:var(--text-sec-dark);}
+.cal-fv .fval{font-size:13px;font-weight:700;}
+.fval.g{color:var(--green-lime);}
+.fval.b{color:var(--sky);}
+.fval.w{color:white;}
+
+/* ===== BOTTOM SHEET ===== */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:none;align-items:flex-end;}
+.sheet-overlay.open{display:flex;}
+.sheet{background:white;border-radius:22px 22px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:0 0 32px;}
+.sheet-handle{width:36px;height:4px;background:#E0D8F0;border-radius:2px;margin:12px auto 0;}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;}
+.sheet-title{font-size:17px;font-weight:800;color:var(--text-navy);}
+.sheet-close{width:30px;height:30px;background:var(--lavender);border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.sheet-body{padding:0 16px;}
+
+/* ===== FORM ===== */
+.form-section{margin-bottom:20px;}
+.form-sec-label{font-size:12px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.form-row{margin-bottom:12px;}
+.form-label{font-size:12px;font-weight:600;color:var(--text-sec-light);margin-bottom:5px;display:block;}
+.form-input{width:100%;background:var(--lavender);border:1.5px solid var(--border-light);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text-navy);font-family:var(--font-main);outline:none;transition:border .2s;}
+.form-input:focus{border-color:var(--purple);}
+.form-input.mono{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.5px;}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.isin-row{display:flex;gap:8px;}
+.isin-row .form-input{flex:1;}
+.fetch-btn{background:var(--green);color:white;border:none;border-radius:10px;padding:0 16px;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer;font-family:var(--font-main);}
+.fetch-strip{background:#DCFCE7;border:1px solid #86EFAC;border-radius:10px;padding:10px 12px;margin-top:8px;display:none;}
+.fetch-strip.visible{display:block;}
+.fetch-strip-title{font-size:11px;font-weight:700;color:#15803D;margin-bottom:4px;}
+.fetch-item{font-size:12px;color:var(--text-navy);padding:1px 0;}
+.fetch-item span{font-weight:600;}
+select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B3FA0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--lavender);border-radius:10px;padding:12px 14px;}
+.toggle-label{font-size:13px;font-weight:600;color:var(--text-navy);}
+.toggle-sub{font-size:11px;color:var(--text-sec-light);}
+.toggle-switch{position:relative;width:52px;height:28px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#DDD;border-radius:28px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.toggle-switch input:checked+.toggle-slider{background:var(--green);}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(24px);}
+.fy-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.fy-chip{border:1.5px solid var(--border-light);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-sec-light);cursor:pointer;transition:all .2s;}
+.fy-chip.selected{background:var(--purple);color:white;border-color:var(--purple);}
+.upload-box{background:var(--lavender);border:2px dashed var(--purple-light);border-radius:12px;padding:20px;text-align:center;cursor:pointer;}
+.upload-icon{font-size:28px;margin-bottom:6px;}
+.upload-text{font-size:13px;font-weight:600;color:var(--purple);}
+.upload-sub{font-size:11px;color:var(--text-sec-light);margin-top:2px;}
+.save-btn{width:100%;background:var(--green);color:white;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font-main);margin-top:8px;transition:opacity .2s;}
+.save-btn:active{opacity:.85;}
+
+/* ===== PAYOUT DETAIL SHEET ===== */
+.payout-card{background:var(--lavender);border-radius:14px;padding:14px;margin-bottom:10px;}
+.payout-card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.payout-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:white;flex-shrink:0;}
+.payout-name{font-size:13px;font-weight:700;color:var(--text-navy);}
+.payout-isin{font-size:10px;font-family:var(--font-mono);color:var(--text-sec-light);}
+.payout-rows{display:flex;flex-direction:column;gap:6px;}
+.payout-row{display:flex;justify-content:space-between;align-items:center;}
+.payout-row .pr-label{font-size:12px;color:var(--text-sec-light);}
+.payout-row .pr-val{font-size:13px;font-weight:700;}
+.pr-val.g{color:var(--green);}
+.pr-val.b{color:var(--sky);}
+.pr-val.r{color:var(--red);}
+.pr-val.w{color:var(--text-navy);}
+.payout-divider{height:1px;background:var(--border-light);margin:8px 0;}
+.payout-net{display:flex;justify-content:space-between;align-items:center;}
+.payout-net .pn-label{font-size:12px;font-weight:700;color:var(--text-sec-light);}
+.payout-net .pn-val{font-size:16px;font-weight:800;color:var(--text-navy);}
+.payout-remark{background:#FEF9C3;border-radius:8px;padding:7px 10px;margin-top:8px;font-size:11px;color:#A16207;font-weight:500;}
+/* received tick on calendar cell */
+.cal-cell .tick-dot{position:absolute;top:3px;right:4px;width:14px;height:14px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.cal-cell .tick-dot svg{width:9px;height:9px;stroke:white;stroke-width:3;}
+/* payout sheet enhancements */
+.received-bar{display:flex;align-items:center;justify-content:space-between;background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:10px;padding:10px 14px;margin-top:10px;}
+.received-bar.not-received{background:#FEF3C7;border-color:#FCD34D;}
+.received-label{font-size:12px;font-weight:700;color:#15803D;}
+.received-bar.not-received .received-label{color:#92400E;}
+.tick-toggle{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform .15s;}
+.tick-toggle:active{transform:scale(.88);}
+.tick-toggle.done{background:var(--green);}
+.tick-toggle.pending{background:#FCD34D;}
+/* user note box */
+.note-box{margin-top:10px;}
+.note-box textarea{width:100%;background:var(--lavender);border:1.5px solid var(--border-light);border-radius:10px;padding:10px 12px;font-size:13px;font-family:var(--font-main);color:var(--text-navy);resize:none;outline:none;transition:border .2s;}
+.note-box textarea:focus{border-color:var(--purple);}
+.note-box-label{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.note-save-btn{width:100%;background:var(--purple);color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-main);margin-top:6px;transition:opacity .2s;}
+.note-save-btn:active{opacity:.85;}
+
+/* ===== MORE PAGE ===== */
+.more-section{margin-bottom:22px;}
+.more-sec-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.more-sec-icon{font-size:20px;}
+.more-sec-title{font-size:17px;font-weight:800;color:var(--text-navy);}
+.more-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+.more-item{display:flex;flex-direction:column;align-items:center;padding:14px 6px;gap:6px;cursor:pointer;border-radius:12px;transition:background .15s;}
+.more-item:active{background:var(--lavender-mid);}
+.more-icon-circle{width:44px;height:44px;background:rgba(255,255,255,0.8);border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-light);}
+.more-icon-circle svg{width:20px;height:20px;stroke:var(--purple);}
+.more-item-label{font-size:11px;font-weight:600;color:var(--text-navy);text-align:center;line-height:1.3;}
+
+/* ===== MISC ===== */
+.broker-pill{background:rgba(107,63,160,0.1);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--purple);font-weight:500;}
+.empty-state{text-align:center;padding:40px 20px;}
+.empty-state .ei{font-size:48px;margin-bottom:12px;}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text-navy);margin-bottom:6px;}
+.empty-state p{font-size:13px;color:var(--text-sec-light);line-height:1.5;}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--navy);color:white;border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.cf-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+.cf-table th{background:var(--purple);color:white;padding:6px 8px;text-align:left;font-weight:600;}
+.cf-table td{padding:6px 8px;border-bottom:1px solid var(--border-light);color:var(--text-navy);}
+.cf-table tr:nth-child(even) td{background:var(--lavender);}
+.cf-table .num{font-family:var(--font-mono);text-align:right;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- TOP BAR REMOVED -->
+
+  <!-- PAGES -->
+  <div class="pages">
+    <!-- PAGE 1: PORTFOLIO -->
+    <div class="page active" id="page-portfolio">
+      <div class="page-content">
+        <!-- User Greeting -->
+        <div class="user-greeting">
+          <div class="greet-left">
+            <span class="greet-hi">Welcome back,</span>
+            <span class="greet-name">Hari 👋</span>
+          </div>
+          <div class="greet-avatar">H</div>
+        </div>
+        <!-- Hero Card -->
+        <div class="hero-card" id="heroCard">
+          <div class="hero-top">
+            <div class="hero-kpi">
+              <h3>Total Investment</h3>
+              <div class="val" id="heroTotal">₹ 0.00</div>
+            </div>
+            <div class="hero-divider"></div>
+            <div class="hero-kpi" style="text-align:right">
+              <h3>Weighted Avg Yield</h3>
+              <div class="val green" id="heroYTM">0.00% p.a.</div>
+            </div>
+          </div>
+          <div class="hero-bottom" onclick="goToPayments()">
+            <div>
+              <div class="next-amt" id="heroNextAmt">₹ 0.00</div>
+              <div class="next-date" id="heroNextDate">Next Payout: —</div>
+            </div>
+            <button class="arrow-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Pills -->
+        <div class="kpi-pills">
+          <div class="kpi-pill"><div class="pl">Active Bonds</div><div class="pv" id="pillBonds">0</div></div>
+          <div class="kpi-pill"><div class="pl">This Month</div><div class="pv" id="pillMonth">₹ 0</div></div>
+          <div class="kpi-pill"><div class="pl">Form 121</div><div class="pv" id="pillForm">0/0 ✅</div></div>
+          <div class="kpi-pill"><div class="pl">TDS This Month</div><div class="pv" id="pillTDS">₹ 0</div></div>
+        </div>
+
+        <!-- My Bonds -->
+        <div class="sec-header">
+          <div class="sec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <div class="sec-title">MY BONDS</div>
+          <div class="sec-badge" id="bondCount">0</div>
+        </div>
+        <div id="bondList"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: PAYMENTS (CALENDAR) -->
+    <div class="page" id="page-payments">
+      <div class="page-content">
+        <div class="user-greeting" style="padding:10px 0 2px;">
+          <div class="greet-left">
+            <span class="greet-hi">Payments —</span>
+            <span class="greet-name">Hari's Portfolio</span>
+          </div>
+          <div class="greet-avatar">H</div>
+        </div>
+        <div class="cal-header">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1040" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="cal-title" id="calTitle">MAY 2026</div>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1040" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="cal-dow">
+          <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+        </div>
+        <div id="calSwipeWrapper" style="touch-action:pan-y;">
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div style="height:60px;"></div>
+      </div>
+      <div class="cal-footer">
+        <div class="cal-footer-title" id="calFooterTitle">MAY 2026 TOTAL</div>
+        <div class="cal-footer-vals">
+          <div class="cal-fv"><span>Interest</span><div class="fval g" id="calFI">₹0</div></div>
+          <div class="cal-fv"><span>Principal</span><div class="fval b" id="calFP">₹0</div></div>
+          <div class="cal-fv"><span>Net</span><div class="fval w" id="calFN">₹0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: MORE -->
+    <div class="page" id="page-more">
+      <div class="page-content" style="padding-top:8px;">
+        <div class="more-section">
+          <div class="more-sec-header">
+            <div class="more-sec-icon">🗂️</div>
+            <div class="more-sec-title">My Tools</div>
+          </div>
+          <div class="more-grid">
+            <div class="more-item" onclick="goTab('portfolio')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+              <div class="more-item-label">Portfolio</div>
+            </div>
+            <div class="more-item" onclick="goTab('payments')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+              <div class="more-item-label">Payments</div>
+            </div>
+            <div class="more-item" onclick="showToast('Calculator coming soon')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg></div>
+              <div class="more-item-label">Bond Calculator</div>
+            </div>
+            <div class="more-item" onclick="showForm121()">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg></div>
+              <div class="more-item-label">Form 121</div>
+            </div>
+            <div class="more-item" onclick="exportData()">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+              <div class="more-item-label">Export Data</div>
+            </div>
+            <div class="more-item" onclick="showToast('Analytics coming soon')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+              <div class="more-item-label">Analytics</div>
+            </div>
+            <div class="more-item" onclick="showToast('Settings coming soon')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+              <div class="more-item-label">Settings</div>
+            </div>
+            <div class="more-item" onclick="clearData()">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div>
+              <div class="more-item-label">Clear All Data</div>
+            </div>
+          </div>
+        </div>
+        <div class="more-section">
+          <div class="more-sec-header">
+            <div class="more-sec-icon">🔗</div>
+            <div class="more-sec-title">Bond Info</div>
+          </div>
+          <div class="more-grid">
+            <div class="more-item" onclick="window.open('https://www.nseindia.com/market-data/debt-private-placement','_blank')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+              <div class="more-item-label">NSE Lookup</div>
+            </div>
+            <div class="more-item" onclick="window.open('https://www.nseindia.com/market-data/debt-private-placement','_blank')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M4 11h8"/><path d="M4 7h4"/><path d="M4 15h8"/></svg></div>
+              <div class="more-item-label">Market News</div>
+            </div>
+            <div class="more-item" onclick="showToast('Bond Education coming soon')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+              <div class="more-item-label">Bond Education</div>
+            </div>
+            <div class="more-item" onclick="window.open('https://www.indiabonds.com','_blank')">
+              <div class="more-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+              <div class="more-item-label">IndiaBonds</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:10px 0 20px;">
+          <div style="font-size:11px;color:var(--text-sec-light);">Bond Payout Tracker v1.0</div>
+          <div style="font-size:10px;color:var(--text-sec-light);margin-top:2px;">Offline • Data stored locally</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-portfolio" onclick="goTab('portfolio')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Portfolio</span>
+    </button>
+    <button class="nav-item" id="nav-payments" onclick="goTab('payments')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Payments</span>
+    </button>
+    <button class="nav-item" id="nav-more" onclick="goTab('more')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>More</span>
+    </button>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddBond()">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- ADD BOND SHEET -->
+<div class="sheet-overlay" id="addBondSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="bondSheetTitle">ADD NEW BOND</div>
+      <button class="sheet-close" onclick="closeSheet('addBondSheet')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B3FA0" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <input type="hidden" id="editISIN"/>
+
+      <!-- Group 1: Security -->
+      <div class="form-section">
+        <div class="form-sec-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Security Identification
+        </div>
+        <div class="form-row">
+          <label class="form-label">ISIN *</label>
+          <div class="isin-row">
+            <input class="form-input mono" type="text" id="fISIN" maxlength="12" placeholder="INE000X00000" oninput="onISINInput(this.value)"/>
+            <button class="fetch-btn" onclick="fetchNSE()">FETCH →</button>
+          </div>
+          <div class="fetch-strip" id="fetchStrip">
+            <div class="fetch-strip-title">✅ Security details fetched</div>
+            <div id="fetchDetails"></div>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin-bottom:0">
+            <label class="form-label">Bond Name</label>
+            <input class="form-input" type="text" id="fName" placeholder="Issuer Name"/>
+          </div>
+          <div class="form-row" style="margin-bottom:0">
+            <label class="form-label">Credit Rating</label>
+            <input class="form-input" type="text" id="fRating" placeholder="BBB+ ICRA"/>
+          </div>
+        </div>
+        <div class="form-row-2" style="margin-top:10px;">
+          <div class="form-row" style="margin-bottom:0">
+            <label class="form-label">Coupon %</label>
+            <input class="form-input" type="number" id="fCoupon" placeholder="11.25" step="0.01"/>
+          </div>
+          <div class="form-row" style="margin-bottom:0">
+            <label class="form-label">YTM %</label>
+            <input class="form-input" type="number" id="fYTM" placeholder="12.25" step="0.01"/>
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:10px;">
+          <label class="form-label">Maturity Date</label>
+          <input class="form-input" type="date" id="fMaturity"/>
+        </div>
+      </div>
+
+      <!-- Group 2: Investment -->
+      <div class="form-section">
+        <div class="form-sec-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Investment Details
+        </div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin-bottom:0">
+            <label class="form-label">Quantity</label>
+            <input class="form-input" type="number" id="fQty" placeholder="10" min="1" oninput="calcInvested()"/>
+          </div>
+          <div class="form-row" style="margin-bottom:0">
+            <label class="form-label">Per Unit (₹)</label>
+            <input class="form-input" type="number" id="fPerQty" placeholder="9979.80" step="0.01" oninput="calcInvested()"/>
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:10px;">
+          <label class="form-label">Invested Amount (₹)</label>
+          <input class="form-input" type="text" id="fInvested" readonly placeholder="Auto-calculated" style="background:#DCFCE7;color:#15803D;font-weight:700;"/>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Broker</label>
+          <select class="form-input" id="fBroker">
+            <option value="">Select Broker</option>
+            <option>IndiaBonds</option>
+            <option>Grip Invest</option>
+            <option>GoldenPi</option>
+            <option>Wint Wealth</option>
+            <option>Zerodha</option>
+            <option>HDFC Securities</option>
+            <option>ICICI Direct</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Purchase Date</label>
+          <input class="form-input" type="date" id="fPurchaseDate"/>
+        </div>
+      </div>
+
+      <!-- Group 3: Compliance -->
+      <div class="form-section">
+        <div class="form-sec-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+          Compliance
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Form 121</div>
+            <div class="toggle-sub" id="formToggleLabel">Not Submitted</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="fForm121" onchange="updateFormLabel()"/>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="form-row" style="margin-top:10px;">
+          <label class="form-label">Submitted for FY</label>
+          <div class="fy-chips">
+            <div class="fy-chip" data-fy="FY 2024-25" onclick="selectFY(this)">FY 2024-25</div>
+            <div class="fy-chip selected" data-fy="FY 2025-26" onclick="selectFY(this)">FY 2025-26</div>
+            <div class="fy-chip" data-fy="FY 2026-27" onclick="selectFY(this)">FY 2026-27</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 4: Cashflow -->
+      <div class="form-section">
+        <div class="form-sec-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Cashflow Import
+        </div>
+        <div class="upload-box" onclick="document.getElementById('cfUpload').click()">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Upload Cashflow Statement</div>
+          <div class="upload-sub">PDF or Image from IndiaBonds / Broker</div>
+        </div>
+        <input type="file" id="cfUpload" accept=".pdf,image/*" style="display:none" onchange="parseCashflow(this)"/>
+        <div id="cfPreview" style="margin-top:10px;display:none;overflow-x:auto;"></div>
+      </div>
+
+      <!-- Manual Cashflow Entry -->
+      <div class="form-section">
+        <div class="form-sec-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Payout Manually
+        </div>
+        <div id="manualEntries"></div>
+        <button onclick="addManualEntry()" style="width:100%;background:var(--lavender);border:1.5px dashed var(--purple-light);border-radius:10px;padding:10px;color:var(--purple);font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-main);margin-bottom:4px;">+ Add Payout Row</button>
+      </div>
+
+      <button class="save-btn" onclick="saveBond()">SAVE BOND</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYOUT DETAIL SHEET -->
+<div class="sheet-overlay" id="payoutSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="payoutSheetDate">—</div>
+      <button class="sheet-close" onclick="closeSheet('payoutSheet')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B3FA0" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body" id="payoutSheetBody"></div>
+  </div>
+</div>
+
+<!-- FORM 15H SHEET -->
+<div class="sheet-overlay" id="form121Sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Form 121 Status</div>
+      <button class="sheet-close" onclick="closeSheet('form121Sheet')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B3FA0" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body" id="form121Body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let bonds = [];
+let cashflow = [];
+let calDate = new Date(2026, 4, 1); // May 2026
+let editingISIN = null;
+let manualEntryCount = 0;
+let pendingCashflow = [];
+let receivedMap = {};   // key: cfId  → true/false (payment received)
+let notesMap = {};      // key: cfId  → string (user note)
+
+const COLORS = ['#6B3FA0','#22C55E','#F59E0B','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316'];
+
+// ===== SEED DATA (pre-loaded from Excel — Hariprasad Portfolio) =====
+const SEED_BONDS = [{"isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","credit_rating":"A Ind-Ra","coupon":10.62,"ytm":11.25,"maturity_date":"2028-02-07","quantity":1,"per_quantity":99724.61,"invested":99724.61,"broker":"India Bonds","purchase_date":"2025-09-04","form_121":false,"form_121_fy":"FY 2026-27","early_sell":false},{"isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","credit_rating":"BBB+ CARE","coupon":11.0,"ytm":11.75,"maturity_date":"2028-08-26","quantity":1,"per_quantity":10032.85,"invested":10032.85,"broker":"India Bonds","purchase_date":"2026-03-09","form_121":true,"form_121_fy":"FY 2026-27","early_sell":false},{"isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","credit_rating":"A CRISIL","coupon":10.3,"ytm":11.0,"maturity_date":"2027-09-30","quantity":10,"per_quantity":9967.99,"invested":99679.86,"broker":"India Bonds","purchase_date":"2026-03-09","form_121":true,"form_121_fy":"FY 2026-27","early_sell":false},{"isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","credit_rating":"BBB+ IND","coupon":11.4,"ytm":13.5,"maturity_date":"2028-04-11","quantity":1,"per_quantity":98734.3,"invested":98734.3,"broker":"GoldenPi","purchase_date":"2026-03-20","form_121":true,"form_121_fy":"FY 2026-27","early_sell":false},{"isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","credit_rating":"A","coupon":9.3,"ytm":11.0,"maturity_date":"2028-01-27","quantity":4,"per_quantity":9960.59,"invested":39842.37,"broker":"GoldenPi","purchase_date":"2026-03-23","form_121":true,"form_121_fy":"FY 2026-27","early_sell":false},{"isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","credit_rating":"A CRISIL","coupon":10.75,"ytm":11.0,"maturity_date":"2028-12-31","quantity":10,"per_quantity":10041.95,"invested":100419.54,"broker":"India Bonds","purchase_date":"2026-03-13","form_121":true,"form_121_fy":"FY 2026-27","early_sell":false},{"isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","credit_rating":"BBB+ ICRA","coupon":11.25,"ytm":12.25,"maturity_date":"2028-04-26","quantity":20,"per_quantity":9982.97,"invested":199659.35,"broker":"India Bonds","purchase_date":"2026-05-06","form_121":false,"form_121_fy":"FY 2026-27","early_sell":false}];
+const SEED_CASHFLOW = [{"id":"INE403Q07GC4_2025-10-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2025-10-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2025-11-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2025-11-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2025-12-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2025-12-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-01-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-01-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-02-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-02-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-03-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-03-07","face_value":0,"interest_amount":814.68,"total_amount":814.68,"net_receivable":733.22,"tds_deducted":81.46,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-04-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-04-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-05-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-05-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-06-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-06-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-07-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-07-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-08-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-08-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-09-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-09-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-10-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-10-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-11-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-11-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2026-12-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2026-12-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-01-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-01-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-02-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-02-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-03-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-03-07","face_value":0,"interest_amount":814.68,"total_amount":814.68,"net_receivable":733.22,"tds_deducted":81.46,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-04-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-04-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-05-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-05-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-06-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-06-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-07-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-07-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-08-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-08-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-09-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-09-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-10-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-10-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-11-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-11-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2027-12-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2027-12-07","face_value":0,"interest_amount":872.88,"total_amount":872.88,"net_receivable":785.59,"tds_deducted":87.29,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2028-01-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2028-01-07","face_value":0,"interest_amount":901.97,"total_amount":901.97,"net_receivable":811.78,"tds_deducted":90.19,"payout_type":"interest","remarks":""},{"id":"INE403Q07GC4_2028-02-07","bond_isin":"INE403Q07GC4","bond_name":"KOSAMATTAM FINANCE LIMITED","payout_date":"2028-02-07","face_value":100000,"interest_amount":901.97,"total_amount":100901.97,"net_receivable":100811.78,"tds_deducted":90.19,"payout_type":"interest+principal","remarks":"Maturity: 100.00% FV redemption"},{"id":"INE14H407116_2026-03-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-03-26","face_value":0,"interest_amount":114.52,"total_amount":114.52,"net_receivable":103.07,"tds_deducted":11.45,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-04-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-04-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-05-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-05-26","face_value":0,"interest_amount":90.41,"total_amount":90.41,"net_receivable":81.37,"tds_deducted":9.04,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-06-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-06-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-07-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-07-26","face_value":0,"interest_amount":90.41,"total_amount":90.41,"net_receivable":81.37,"tds_deducted":9.04,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-08-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-08-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-09-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-09-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-10-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-10-26","face_value":0,"interest_amount":90.41,"total_amount":90.41,"net_receivable":81.37,"tds_deducted":9.04,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-11-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-11-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2026-12-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2026-12-26","face_value":0,"interest_amount":90.41,"total_amount":90.41,"net_receivable":81.37,"tds_deducted":9.04,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-01-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-01-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-02-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-02-26","face_value":0,"interest_amount":93.42,"total_amount":93.42,"net_receivable":84.08,"tds_deducted":9.34,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-03-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-03-26","face_value":0,"interest_amount":84.38,"total_amount":84.38,"net_receivable":75.95,"tds_deducted":8.43,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-04-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-04-26","face_value":0,"interest_amount":93.17,"total_amount":93.17,"net_receivable":83.85,"tds_deducted":9.32,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-05-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-05-26","face_value":0,"interest_amount":90.16,"total_amount":90.16,"net_receivable":81.15,"tds_deducted":9.01,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-06-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-06-26","face_value":0,"interest_amount":93.17,"total_amount":93.17,"net_receivable":83.85,"tds_deducted":9.32,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-07-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-07-26","face_value":0,"interest_amount":90.16,"total_amount":90.16,"net_receivable":81.15,"tds_deducted":9.01,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-08-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-08-26","face_value":3333,"interest_amount":93.17,"total_amount":3426.17,"net_receivable":3416.85,"tds_deducted":9.32,"payout_type":"interest+principal","remarks":"Maturity: 33.33% FV redemption"},{"id":"INE14H407116_2027-09-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-09-26","face_value":0,"interest_amount":62.12,"total_amount":62.12,"net_receivable":55.9,"tds_deducted":6.22,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-10-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-10-26","face_value":0,"interest_amount":60.11,"total_amount":60.11,"net_receivable":54.1,"tds_deducted":6.01,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-11-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-11-26","face_value":0,"interest_amount":62.12,"total_amount":62.12,"net_receivable":55.9,"tds_deducted":6.22,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2027-12-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2027-12-26","face_value":0,"interest_amount":60.11,"total_amount":60.11,"net_receivable":54.1,"tds_deducted":6.01,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-01-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-01-26","face_value":0,"interest_amount":62.12,"total_amount":62.12,"net_receivable":55.9,"tds_deducted":6.22,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-02-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-02-26","face_value":3333,"interest_amount":62.12,"total_amount":3395.12,"net_receivable":3388.9,"tds_deducted":6.22,"payout_type":"interest+principal","remarks":"Maturity: 33.33% FV redemption"},{"id":"INE14H407116_2028-03-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-03-26","face_value":0,"interest_amount":29.06,"total_amount":29.06,"net_receivable":26.15,"tds_deducted":2.91,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-04-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-04-26","face_value":0,"interest_amount":31.15,"total_amount":31.15,"net_receivable":28.03,"tds_deducted":3.12,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-05-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-05-26","face_value":0,"interest_amount":30.14,"total_amount":30.14,"net_receivable":27.13,"tds_deducted":3.01,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-06-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-06-26","face_value":0,"interest_amount":31.15,"total_amount":31.15,"net_receivable":28.03,"tds_deducted":3.12,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-07-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-07-26","face_value":0,"interest_amount":30.14,"total_amount":30.14,"net_receivable":27.13,"tds_deducted":3.01,"payout_type":"interest","remarks":""},{"id":"INE14H407116_2028-08-26","bond_isin":"INE14H407116","bond_name":"FINNABLE CREDIT PRIVATE LIMITED","payout_date":"2028-08-26","face_value":3334,"interest_amount":31.15,"total_amount":3365.15,"net_receivable":3362.03,"tds_deducted":3.12,"payout_type":"interest+principal","remarks":"Maturity: 33.34% FV redemption"},{"id":"INE342T07635_2026-04-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-04-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-05-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-05-11","face_value":0,"interest_amount":846.58,"total_amount":846.58,"net_receivable":761.92,"tds_deducted":84.66,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-06-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-06-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-07-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-07-11","face_value":0,"interest_amount":846.58,"total_amount":846.58,"net_receivable":761.92,"tds_deducted":84.66,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-08-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-08-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-09-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-09-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-10-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-10-11","face_value":0,"interest_amount":846.58,"total_amount":846.58,"net_receivable":761.92,"tds_deducted":84.66,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-11-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-11-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2026-12-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2026-12-11","face_value":0,"interest_amount":846.58,"total_amount":846.58,"net_receivable":761.92,"tds_deducted":84.66,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-01-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-01-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-02-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-02-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-03-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-03-11","face_value":0,"interest_amount":790.14,"total_amount":790.14,"net_receivable":711.12,"tds_deducted":79.02,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-04-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-04-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-05-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-05-11","face_value":0,"interest_amount":846.58,"total_amount":846.58,"net_receivable":761.92,"tds_deducted":84.66,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-06-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-06-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-07-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-07-11","face_value":0,"interest_amount":846.58,"total_amount":846.58,"net_receivable":761.92,"tds_deducted":84.66,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-08-11","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-08-11","face_value":0,"interest_amount":874.79,"total_amount":874.79,"net_receivable":787.32,"tds_deducted":87.47,"payout_type":"interest","remarks":""},{"id":"INE342T07635_2027-09-30","bond_isin":"INE342T07635","bond_name":"NAVI FINSERV LIMITED","payout_date":"2027-09-30","face_value":100000,"interest_amount":1410.96,"total_amount":101410.96,"net_receivable":101269.86,"tds_deducted":141.1,"payout_type":"interest+principal","remarks":"Maturity: 100.00% FV redemption"},{"id":"INE0NES07279_2026-04-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-04-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-05-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-05-11","face_value":0,"interest_amount":936.99,"total_amount":936.99,"net_receivable":843.29,"tds_deducted":93.7,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-06-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-06-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-07-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-07-11","face_value":0,"interest_amount":936.99,"total_amount":936.99,"net_receivable":843.29,"tds_deducted":93.7,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-08-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-08-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-09-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-09-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-10-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-10-11","face_value":0,"interest_amount":936.99,"total_amount":936.99,"net_receivable":843.29,"tds_deducted":93.7,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-11-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-11-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2026-12-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2026-12-11","face_value":0,"interest_amount":936.99,"total_amount":936.99,"net_receivable":843.29,"tds_deducted":93.7,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-01-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-01-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-02-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-02-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-03-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-03-11","face_value":0,"interest_amount":874.52,"total_amount":874.52,"net_receivable":787.07,"tds_deducted":87.45,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-04-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-04-11","face_value":0,"interest_amount":968.22,"total_amount":968.22,"net_receivable":871.4,"tds_deducted":96.82,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-05-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-05-11","face_value":0,"interest_amount":936.99,"total_amount":936.99,"net_receivable":843.29,"tds_deducted":93.7,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-06-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-06-11","face_value":95000,"interest_amount":968.22,"total_amount":95968.22,"net_receivable":95871.4,"tds_deducted":96.82,"payout_type":"interest+principal","remarks":"Part Maturity: 95% FV Redemption"},{"id":"INE0NES07279_2027-07-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-07-11","face_value":0,"interest_amount":46.85,"total_amount":46.85,"net_receivable":42.16,"tds_deducted":4.69,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-08-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-08-11","face_value":0,"interest_amount":48.41,"total_amount":48.41,"net_receivable":43.57,"tds_deducted":4.84,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-09-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-09-11","face_value":0,"interest_amount":48.41,"total_amount":48.41,"net_receivable":43.57,"tds_deducted":4.84,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-10-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-10-11","face_value":0,"interest_amount":46.85,"total_amount":46.85,"net_receivable":42.16,"tds_deducted":4.69,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-11-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-11-11","face_value":0,"interest_amount":48.41,"total_amount":48.41,"net_receivable":43.57,"tds_deducted":4.84,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2027-12-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2027-12-11","face_value":0,"interest_amount":46.85,"total_amount":46.85,"net_receivable":42.16,"tds_deducted":4.69,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2028-01-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2028-01-11","face_value":0,"interest_amount":48.41,"total_amount":48.41,"net_receivable":43.57,"tds_deducted":4.84,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2028-02-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2028-02-11","face_value":0,"interest_amount":48.41,"total_amount":48.41,"net_receivable":43.57,"tds_deducted":4.84,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2028-03-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2028-03-11","face_value":0,"interest_amount":45.29,"total_amount":45.29,"net_receivable":40.76,"tds_deducted":4.53,"payout_type":"interest","remarks":""},{"id":"INE0NES07279_2028-04-11","bond_isin":"INE0NES07279","bond_name":"KEERTANA FINSERV PRIVATE LIMITED","payout_date":"2028-04-11","face_value":5000,"interest_amount":48.41,"total_amount":5048.41,"net_receivable":5043.57,"tds_deducted":4.84,"payout_type":"interest+principal","remarks":"Part Maturity: 5% FV Redemption"},{"id":"INE101Q07BS1_2026-04-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-04-10","face_value":0,"interest_amount":315.95,"total_amount":315.95,"net_receivable":284.36,"tds_deducted":31.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-05-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-05-10","face_value":0,"interest_amount":305.75,"total_amount":305.75,"net_receivable":275.16,"tds_deducted":30.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-06-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-06-10","face_value":0,"interest_amount":315.95,"total_amount":315.95,"net_receivable":284.36,"tds_deducted":31.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-07-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-07-10","face_value":0,"interest_amount":305.75,"total_amount":305.75,"net_receivable":275.16,"tds_deducted":30.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-08-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-08-10","face_value":0,"interest_amount":315.95,"total_amount":315.95,"net_receivable":284.36,"tds_deducted":31.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-09-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-09-10","face_value":0,"interest_amount":315.95,"total_amount":315.95,"net_receivable":284.36,"tds_deducted":31.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-10-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-10-10","face_value":0,"interest_amount":305.75,"total_amount":305.75,"net_receivable":275.16,"tds_deducted":30.59,"payout_type":"interest","remarks":""},{"id":"INE101Q07BS1_2026-11-10","bond_isin":"INE101Q07BS1","bond_name":"MUTHOOT MCRED LIMITED","payout_date":"2026-11-10","face_value":40000,"interest_amount":315.95,"total_amount":40315.96,"net_receivable":40284.36,"tds_deducted":31.6,"payout_type":"interest+principal","remarks":"Early Sell Option: 100% FV Redemption"},{"id":"INE342T07668_2026-04-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-04-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-05-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-05-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-06-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-06-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-07-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-07-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-08-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-08-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-09-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-09-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-10-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-10-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-11-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-11-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2026-12-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2026-12-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-01-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-01-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-02-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-02-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-03-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-03-20","face_value":0,"interest_amount":824.66,"total_amount":824.66,"net_receivable":742.2,"tds_deducted":82.46,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-04-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-04-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-05-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-05-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-06-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-06-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-07-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-07-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-08-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-08-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-09-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-09-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-10-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-10-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-11-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-11-20","face_value":0,"interest_amount":913.01,"total_amount":913.01,"net_receivable":821.7,"tds_deducted":91.31,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2027-12-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2027-12-20","face_value":0,"interest_amount":883.56,"total_amount":883.56,"net_receivable":795.2,"tds_deducted":88.36,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-01-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-01-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-02-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-02-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-03-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-03-20","face_value":0,"interest_amount":851.78,"total_amount":851.78,"net_receivable":766.6,"tds_deducted":85.18,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-04-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-04-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-05-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-05-20","face_value":0,"interest_amount":881.15,"total_amount":881.15,"net_receivable":793.0,"tds_deducted":88.15,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-06-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-06-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-07-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-07-20","face_value":0,"interest_amount":881.15,"total_amount":881.15,"net_receivable":793.0,"tds_deducted":88.15,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-08-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-08-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-09-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-09-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-10-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-10-20","face_value":0,"interest_amount":881.15,"total_amount":881.15,"net_receivable":793.0,"tds_deducted":88.15,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-11-20","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-11-20","face_value":0,"interest_amount":910.52,"total_amount":910.52,"net_receivable":819.5,"tds_deducted":91.02,"payout_type":"interest","remarks":""},{"id":"INE342T07668_2028-12-31","bond_isin":"INE342T07668","bond_name":"NAVI FINSERV LIMITED (ISIN 668)","payout_date":"2028-12-31","face_value":100000,"interest_amount":1204.24,"total_amount":101204.24,"net_receivable":101083.8,"tds_deducted":120.44,"payout_type":"interest+principal","remarks":"Maturity: 100% FV Redemption"},{"id":"INE572J07810_2026-05-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-05-26","face_value":0,"interest_amount":1726.03,"total_amount":1726.03,"net_receivable":1553.43,"tds_deducted":172.6,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2026-06-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-06-26","face_value":0,"interest_amount":1910.96,"total_amount":1910.96,"net_receivable":1719.86,"tds_deducted":191.1,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2026-07-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-07-26","face_value":0,"interest_amount":1849.32,"total_amount":1849.32,"net_receivable":1664.38,"tds_deducted":184.94,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2026-08-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-08-26","face_value":0,"interest_amount":1910.96,"total_amount":1910.96,"net_receivable":1719.86,"tds_deducted":191.1,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2026-09-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-09-26","face_value":0,"interest_amount":1910.96,"total_amount":1910.96,"net_receivable":1719.86,"tds_deducted":191.1,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2026-10-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-10-26","face_value":50000,"interest_amount":1849.32,"total_amount":51849.32,"net_receivable":51664.38,"tds_deducted":184.94,"payout_type":"interest+principal","remarks":"Maturity: 25.00% FV redemption"},{"id":"INE572J07810_2026-11-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-11-26","face_value":0,"interest_amount":1433.22,"total_amount":1433.22,"net_receivable":1289.9,"tds_deducted":143.32,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2026-12-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2026-12-26","face_value":0,"interest_amount":1386.99,"total_amount":1386.99,"net_receivable":1248.29,"tds_deducted":138.7,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-01-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-01-26","face_value":0,"interest_amount":1433.22,"total_amount":1433.22,"net_receivable":1289.9,"tds_deducted":143.32,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-02-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-02-26","face_value":0,"interest_amount":1433.22,"total_amount":1433.22,"net_receivable":1289.9,"tds_deducted":143.32,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-03-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-03-26","face_value":0,"interest_amount":1294.52,"total_amount":1294.52,"net_receivable":1165.07,"tds_deducted":129.45,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-04-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-04-26","face_value":50000,"interest_amount":1429.3,"total_amount":51429.3,"net_receivable":51286.37,"tds_deducted":142.93,"payout_type":"interest+principal","remarks":"Maturity: 25.00% FV redemption"},{"id":"INE572J07810_2027-05-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-05-26","face_value":0,"interest_amount":922.13,"total_amount":922.13,"net_receivable":829.92,"tds_deducted":92.21,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-06-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-06-26","face_value":0,"interest_amount":952.87,"total_amount":952.87,"net_receivable":857.58,"tds_deducted":95.29,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-07-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-07-26","face_value":0,"interest_amount":922.13,"total_amount":922.13,"net_receivable":829.92,"tds_deducted":92.21,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-08-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-08-26","face_value":0,"interest_amount":952.87,"total_amount":952.87,"net_receivable":857.58,"tds_deducted":95.29,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-09-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-09-26","face_value":0,"interest_amount":952.87,"total_amount":952.87,"net_receivable":857.58,"tds_deducted":95.29,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-10-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-10-26","face_value":50000,"interest_amount":922.13,"total_amount":50922.13,"net_receivable":50829.92,"tds_deducted":92.21,"payout_type":"interest+principal","remarks":"Maturity: 25.00% FV redemption"},{"id":"INE572J07810_2027-11-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-11-26","face_value":0,"interest_amount":476.43,"total_amount":476.43,"net_receivable":428.79,"tds_deducted":47.64,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2027-12-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2027-12-26","face_value":0,"interest_amount":461.07,"total_amount":461.07,"net_receivable":414.96,"tds_deducted":46.11,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2028-01-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2028-01-26","face_value":0,"interest_amount":476.43,"total_amount":476.43,"net_receivable":428.79,"tds_deducted":47.64,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2028-02-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2028-02-26","face_value":0,"interest_amount":476.43,"total_amount":476.43,"net_receivable":428.79,"tds_deducted":47.64,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2028-03-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2028-03-26","face_value":0,"interest_amount":445.7,"total_amount":445.7,"net_receivable":401.13,"tds_deducted":44.57,"payout_type":"interest","remarks":""},{"id":"INE572J07810_2028-04-26","bond_isin":"INE572J07810","bond_name":"SPANDANA SPHOORTY FINANCIAL LIMITED","payout_date":"2028-04-26","face_value":50000,"interest_amount":477.74,"total_amount":50477.74,"net_receivable":50429.97,"tds_deducted":47.77,"payout_type":"interest+principal","remarks":"Maturity: 25.00% FV redemption"}];
+
+// ===== STORAGE =====
+function save(){
+  localStorage.setItem('bpt_bonds', JSON.stringify(bonds));
+  localStorage.setItem('bpt_cf', JSON.stringify(cashflow));
+  localStorage.setItem('bpt_recv', JSON.stringify(receivedMap));
+  localStorage.setItem('bpt_notes', JSON.stringify(notesMap));
+}
+function load(){
+  const stored_bonds = JSON.parse(localStorage.getItem('bpt_bonds')||'[]');
+  const stored_cf   = JSON.parse(localStorage.getItem('bpt_cf')||'[]');
+  receivedMap = JSON.parse(localStorage.getItem('bpt_recv')||'{}');
+  notesMap    = JSON.parse(localStorage.getItem('bpt_notes')||'{}');
+
+  // Always ensure every seed bond & its cashflow is present.
+  // This fixes stale localStorage from prior versions (form_15h → form_121 migration).
+  const storedISINs = new Set(stored_bonds.map(b=>b.isin));
+  const extraBonds  = SEED_BONDS.filter(b=>!storedISINs.has(b.isin));
+  bonds = stored_bonds.length ? [...stored_bonds, ...extraBonds] : SEED_BONDS;
+
+  // For cashflow: inject any seed rows whose id is missing in storage
+  const storedCFIds = new Set(stored_cf.map(c=>c.id));
+  const seedISINs   = new Set(SEED_BONDS.map(b=>b.isin));
+  // Remove old stored CF for seed bonds (may have old field names), re-seed them fresh
+  const userCF      = stored_cf.filter(c=>!seedISINs.has(c.bond_isin));
+  cashflow = [...userCF, ...SEED_CASHFLOW];
+
+  save(); // persist merged state immediately
+}
+
+// ===== NAVIGATION =====
+function goTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='portfolio'){renderPortfolio();}
+  if(tab==='payments'){renderCalendar();}
+}
+function goToPayments(){goTab('payments');}
+
+// ===== SHEETS =====
+function openSheet(id){document.getElementById(id).classList.add('open');}
+function closeSheet(id){document.getElementById(id).classList.remove('open');}
+
+// ===== TOAST =====
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ===== FORMAT =====
+function fmtINR(n){
+  if(!n&&n!==0)return'₹ 0';
+  return'₹ '+parseFloat(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtDate(d){
+  if(!d)return'—';
+  const dt=new Date(d);
+  return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ===== PORTFOLIO RENDER =====
+function renderPortfolio(){
+  renderHero();
+  renderBondList(bonds);
+}
+
+function renderHero(){
+  const total=bonds.reduce((s,b)=>s+parseFloat(b.invested||0),0);
+  const wtdYTM=bonds.length?bonds.reduce((s,b)=>s+(parseFloat(b.ytm||0)*parseFloat(b.invested||0)),0)/Math.max(total,1):0;
+  document.getElementById('heroTotal').textContent=fmtINR(total);
+  document.getElementById('heroYTM').textContent=wtdYTM.toFixed(2)+'% p.a.';
+
+  // Next payout
+  const today=new Date(); today.setHours(0,0,0,0);
+  const future=cashflow.filter(c=>{const d=new Date(c.payout_date);d.setHours(0,0,0,0);return d>=today;}).sort((a,b)=>new Date(a.payout_date)-new Date(b.payout_date));
+  if(future.length){
+    document.getElementById('heroNextAmt').textContent=fmtINR(future[0].net_receivable);
+    document.getElementById('heroNextDate').textContent='Next Payout: '+fmtDate(future[0].payout_date);
+  }
+
+  // KPI pills
+  const form15ok=bonds.filter(b=>b.form_121).length;
+  document.getElementById('pillBonds').textContent=bonds.length;
+  document.getElementById('pillForm').textContent=form15ok+'/'+bonds.length+' ✅';
+
+  // This month
+  const nm=new Date(); 
+  const monthCF=cashflow.filter(c=>{const d=new Date(c.payout_date);return d.getMonth()===nm.getMonth()&&d.getFullYear()===nm.getFullYear();});
+  const mNet=monthCF.reduce((s,c)=>s+parseFloat(c.net_receivable||0),0);
+  const mTDS=monthCF.reduce((s,c)=>s+parseFloat(c.tds_deducted||0),0);
+  document.getElementById('pillMonth').textContent='₹'+Math.round(mNet).toLocaleString('en-IN');
+  document.getElementById('pillTDS').textContent='₹'+Math.round(mTDS).toLocaleString('en-IN');
+  document.getElementById('bondCount').textContent=bonds.length;
+}
+
+function getRatingClass(r){
+  if(!r)return'rating-yellow';
+  const u=r.toUpperCase();
+  if(u.includes('AAA')||u.includes('AA'))return'rating-green';
+  if(u.includes('BB')&&!u.includes('BBB'))return'rating-red';
+  return'rating-yellow';
+}
+
+function renderBondList(list){
+  const el=document.getElementById('bondList');
+  if(!list.length){
+    el.innerHTML=`<div class="empty-state"><div class="ei">💼</div><h3>No bonds yet</h3><p>Tap the + button to add your first bond investment</p></div>`;
+    return;
+  }
+  el.innerHTML=list.map((b,i)=>{
+    const col=COLORS[i%COLORS.length];
+    const initial=(b.bond_name||b.isin||'?')[0].toUpperCase();
+    const form15=b.form_121?`<span class="form15-badge form15-ok">✅ ${b.form_121_fy||'FY 2025-26'}</span>`:`<span class="form15-badge form15-no">⚠️ Not Submitted</span>`;
+    return`<div class="bond-card" onclick="openEditBond('${b.isin}')">
+      <div class="bond-card-top">
+        <div class="bond-avatar" style="background:${col}">${initial}</div>
+        <div class="bond-name-row">
+          <div class="bond-name">${b.bond_name||b.isin}</div>
+          <div class="bond-isin">${b.isin}</div>
+          <span class="rating-pill ${getRatingClass(b.credit_rating)}">${b.credit_rating||'—'}</span>
+        </div>
+      </div>
+      <div class="bond-stats">
+        <div class="bond-stat"><div class="sl">YTM</div><div class="sv green">${parseFloat(b.ytm||0).toFixed(2)}%</div></div>
+        <div class="bond-stat"><div class="sl">Coupon</div><div class="sv purple">${parseFloat(b.coupon||0).toFixed(2)}%</div></div>
+        <div class="bond-stat"><div class="sl">Qty</div><div class="sv">${b.quantity||0}</div></div>
+        <div class="bond-stat"><div class="sl">Invested</div><div class="sv">${fmtINR(b.invested)}</div></div>
+      </div>
+      <div class="bond-meta">
+        <span class="broker-pill">${b.broker||'—'}</span>
+        <span>📅 ${fmtDate(b.purchase_date)}</span>
+        ${form15}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterBonds(q){
+  if(!q){renderBondList(bonds);return;}
+  const fl=bonds.filter(b=>(b.bond_name+b.isin+b.broker).toLowerCase().includes(q.toLowerCase()));
+  renderBondList(fl);
+}
+
+// ===== ADD/EDIT BOND =====
+function openAddBond(){
+  editingISIN=null;
+  document.getElementById('bondSheetTitle').textContent='ADD NEW BOND';
+  document.getElementById('editISIN').value='';
+  document.getElementById('fISIN').value='';
+  document.getElementById('fISIN').disabled=false;
+  document.getElementById('fName').value='';
+  document.getElementById('fRating').value='';
+  document.getElementById('fCoupon').value='';
+  document.getElementById('fYTM').value='';
+  document.getElementById('fMaturity').value='';
+  document.getElementById('fQty').value='';
+  document.getElementById('fPerQty').value='';
+  document.getElementById('fInvested').value='';
+  document.getElementById('fBroker').value='';
+  document.getElementById('fPurchaseDate').value='';
+  document.getElementById('fForm121').checked=false;
+  document.getElementById('formToggleLabel').textContent='Not Submitted';
+  document.querySelectorAll('.fy-chip').forEach(c=>{c.classList.remove('selected');if(c.dataset.fy==='FY 2025-26')c.classList.add('selected');});
+  document.getElementById('fetchStrip').classList.remove('visible');
+  document.getElementById('cfPreview').style.display='none';
+  document.getElementById('manualEntries').innerHTML='';
+  manualEntryCount=0;
+  pendingCashflow=[];
+  openSheet('addBondSheet');
+}
+
+function openEditBond(isin){
+  const b=bonds.find(x=>x.isin===isin);
+  if(!b)return;
+  editingISIN=isin;
+  document.getElementById('bondSheetTitle').textContent='EDIT BOND';
+  document.getElementById('editISIN').value=isin;
+  document.getElementById('fISIN').value=b.isin;
+  document.getElementById('fISIN').disabled=true;
+  document.getElementById('fName').value=b.bond_name||'';
+  document.getElementById('fRating').value=b.credit_rating||'';
+  document.getElementById('fCoupon').value=b.coupon||'';
+  document.getElementById('fYTM').value=b.ytm||'';
+  document.getElementById('fMaturity').value=b.maturity_date||'';
+  document.getElementById('fQty').value=b.quantity||'';
+  document.getElementById('fPerQty').value=b.per_quantity||'';
+  document.getElementById('fInvested').value=b.invested?'₹ '+parseFloat(b.invested).toLocaleString('en-IN',{minimumFractionDigits:2}):'';
+  document.getElementById('fBroker').value=b.broker||'';
+  document.getElementById('fPurchaseDate').value=b.purchase_date||'';
+  document.getElementById('fForm121').checked=!!b.form_121;
+  document.getElementById('formToggleLabel').textContent=b.form_121?'Submitted':'Not Submitted';
+  document.querySelectorAll('.fy-chip').forEach(c=>{c.classList.remove('selected');if(c.dataset.fy===b.form_121_fy)c.classList.add('selected');});
+  document.getElementById('fetchStrip').classList.remove('visible');
+  document.getElementById('cfPreview').style.display='none';
+  document.getElementById('manualEntries').innerHTML='';
+  manualEntryCount=0;
+  pendingCashflow=[];
+  openSheet('addBondSheet');
+}
+
+function onISINInput(val){
+  if(val.length===12)fetchNSE();
+}
+
+function fetchNSE(){
+  const isin=document.getElementById('fISIN').value.toUpperCase().trim();
+  if(isin.length<6){showToast('Enter a valid ISIN first');return;}
+  // Simulate fetch (NSE doesn't allow direct CORS; show guidance)
+  showToast('Fetching from NSE... (CORS: enter details manually)');
+  // In a real app with a proxy, you'd do:
+  // fetch(`https://your-proxy/nse?isin=${isin}`)
+  // For demo, show strip with placeholder
+  document.getElementById('fetchStrip').classList.add('visible');
+  document.getElementById('fetchDetails').innerHTML=`
+    <div class="fetch-item">ISIN: <span>${isin}</span></div>
+    <div class="fetch-item" style="color:#A16207;font-size:11px;">⚠️ NSE requires server-side proxy. Please fill details manually or paste from cashflow PDF.</div>
+  `;
+}
+
+function calcInvested(){
+  const q=parseFloat(document.getElementById('fQty').value)||0;
+  const p=parseFloat(document.getElementById('fPerQty').value)||0;
+  const inv=q*p;
+  document.getElementById('fInvested').value=inv?'₹ '+inv.toLocaleString('en-IN',{minimumFractionDigits:2}):'';
+}
+
+function updateFormLabel(){
+  const checked=document.getElementById('fForm121').checked;
+  document.getElementById('formToggleLabel').textContent=checked?'Submitted':'Not Submitted';
+}
+
+function selectFY(el){
+  document.querySelectorAll('.fy-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addManualEntry(){
+  const id=++manualEntryCount;
+  const div=document.createElement('div');
+  div.id='me_'+id;
+  div.style.cssText='background:var(--lavender);border-radius:10px;padding:10px;margin-bottom:8px;';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+    <span style="font-size:12px;font-weight:700;color:var(--purple);">Payout #${id}</span>
+    <button onclick="document.getElementById('me_${id}').remove()" style="border:none;background:none;color:var(--red);font-size:16px;cursor:pointer;">✕</button>
+  </div>
+  <div class="form-row-2">
+    <div><label class="form-label">Payout Date</label><input class="form-input" type="date" id="me_date_${id}"/></div>
+    <div><label class="form-label">Interest (₹)</label><input class="form-input" type="number" id="me_int_${id}" placeholder="0.00" step="0.01" oninput="calcManualNet(${id})"/></div>
+  </div>
+  <div class="form-row-2" style="margin-top:8px;">
+    <div><label class="form-label">Principal (₹)</label><input class="form-input" type="number" id="me_prin_${id}" placeholder="0.00" step="0.01" oninput="calcManualNet(${id})"/></div>
+    <div><label class="form-label">TDS (₹)</label><input class="form-input" type="number" id="me_tds_${id}" placeholder="0.00" step="0.01" oninput="calcManualNet(${id})"/></div>
+  </div>
+  <div style="margin-top:6px;"><label class="form-label">Net Receivable (₹)</label><input class="form-input" type="number" id="me_net_${id}" placeholder="Auto" step="0.01" style="background:#DCFCE7;color:#15803D;font-weight:700;"/></div>
+  <div style="margin-top:6px;"><label class="form-label">Remarks</label><input class="form-input" type="text" id="me_rem_${id}" placeholder="e.g. Maturity: 25% FV Redemption"/></div>`;
+  document.getElementById('manualEntries').appendChild(div);
+}
+
+function calcManualNet(id){
+  const i=parseFloat(document.getElementById('me_int_'+id).value)||0;
+  const p=parseFloat(document.getElementById('me_prin_'+id).value)||0;
+  const t=parseFloat(document.getElementById('me_tds_'+id).value)||0;
+  document.getElementById('me_net_'+id).value=((i+p-t)||0).toFixed(2);
+}
+
+async function parseCashflow(input){
+  const file=input.files[0];
+  if(!file)return;
+  showToast('Parsing cashflow statement...');
+  // Read as base64 and call Claude API for OCR extraction
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    const base64=e.target.result.split(',')[1];
+    const mime=file.type;
+    try{
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:2000,
+          messages:[{
+            role:'user',
+            content:[
+              {type:'image',source:{type:'base64',media_type:mime,data:base64}},
+              {type:'text',text:`Extract the "INDICATIVE INTEREST RECEIVABLE SCHEDULE" table from this cashflow statement image/PDF. Return ONLY a JSON array with objects having these fields: payout_date (YYYY-MM-DD), face_value (number), interest_amount (number), total_amount (number), net_receivable (number), tds_deducted (number, = total_amount - net_receivable), remarks (string). No markdown, no explanation, just the JSON array.`}
+            ]
+          }]
+        })
+      });
+      const data=await resp.json();
+      const txt=data.content.map(c=>c.text||'').join('');
+      const clean=txt.replace(/```json|```/g,'').trim();
+      const rows=JSON.parse(clean);
+      pendingCashflow=rows;
+      showCFPreview(rows);
+      showToast('✅ '+rows.length+' payout rows extracted!');
+    }catch(err){
+      showToast('Parse failed — use manual entry below');
+      console.error(err);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function showCFPreview(rows){
+  const el=document.getElementById('cfPreview');
+  el.style.display='block';
+  el.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:6px;">Preview (${rows.length} rows) — tap Save to confirm</div>
+  <div style="overflow-x:auto;">
+  <table class="cf-table">
+    <tr><th>Date</th><th>Interest</th><th>Principal</th><th>Net</th><th>Remarks</th></tr>
+    ${rows.map(r=>`<tr>
+      <td>${r.payout_date}</td>
+      <td class="num">₹${parseFloat(r.interest_amount||0).toFixed(0)}</td>
+      <td class="num">₹${parseFloat(r.face_value||0).toFixed(0)}</td>
+      <td class="num">₹${parseFloat(r.net_receivable||0).toFixed(0)}</td>
+      <td>${r.remarks||''}</td>
+    </tr>`).join('')}
+  </table></div>`;
+}
+
+function saveBond(){
+  const isin=document.getElementById('fISIN').value.toUpperCase().trim();
+  const name=document.getElementById('fName').value.trim();
+  if(!isin){showToast('ISIN is required');return;}
+  if(!name){showToast('Bond name is required');return;}
+  const qty=parseFloat(document.getElementById('fQty').value)||0;
+  const perQty=parseFloat(document.getElementById('fPerQty').value)||0;
+  const selectedFY=document.querySelector('.fy-chip.selected');
+
+  const bond={
+    isin,
+    bond_name:name,
+    credit_rating:document.getElementById('fRating').value.trim(),
+    coupon:parseFloat(document.getElementById('fCoupon').value)||0,
+    ytm:parseFloat(document.getElementById('fYTM').value)||0,
+    maturity_date:document.getElementById('fMaturity').value,
+    quantity:qty,
+    per_quantity:perQty,
+    invested:qty*perQty,
+    broker:document.getElementById('fBroker').value,
+    purchase_date:document.getElementById('fPurchaseDate').value,
+    form_121:document.getElementById('fForm121').checked,
+    form_121_fy:selectedFY?selectedFY.dataset.fy:'FY 2025-26',
+  };
+
+  if(editingISIN){
+    const idx=bonds.findIndex(b=>b.isin===editingISIN);
+    if(idx>-1)bonds[idx]=bond;
+  }else{
+    if(bonds.find(b=>b.isin===isin)){showToast('Bond with this ISIN already exists');return;}
+    bonds.push(bond);
+  }
+
+  // Collect manual entries
+  const manualDivs=document.querySelectorAll('[id^="me_date_"]');
+  manualDivs.forEach(d=>{
+    const id=d.id.replace('me_date_','');
+    const pd=document.getElementById('me_date_'+id).value;
+    if(!pd)return;
+    const int_a=parseFloat(document.getElementById('me_int_'+id).value)||0;
+    const prin=parseFloat(document.getElementById('me_prin_'+id).value)||0;
+    const tds=parseFloat(document.getElementById('me_tds_'+id).value)||0;
+    const net=parseFloat(document.getElementById('me_net_'+id).value)||(int_a+prin-tds);
+    const rem=document.getElementById('me_rem_'+id).value||'';
+    pendingCashflow.push({payout_date:pd,face_value:prin,interest_amount:int_a,total_amount:int_a+prin,net_receivable:net,tds_deducted:tds,remarks:rem});
+  });
+
+  // Save cashflow entries
+  cashflow=cashflow.filter(c=>c.bond_isin!==isin);
+  pendingCashflow.forEach(row=>{
+    cashflow.push({
+      id:isin+'_'+row.payout_date,
+      bond_isin:isin,
+      bond_name:name,
+      payout_date:row.payout_date,
+      face_value:parseFloat(row.face_value||0),
+      interest_amount:parseFloat(row.interest_amount||0),
+      total_amount:parseFloat(row.total_amount||0),
+      net_receivable:parseFloat(row.net_receivable||0),
+      tds_deducted:parseFloat(row.tds_deducted||0),
+      payout_type:(parseFloat(row.face_value||0)>0)?'interest+principal':'interest',
+      remarks:row.remarks||''
+    });
+  });
+
+  save();
+  closeSheet('addBondSheet');
+  renderPortfolio();
+  showToast(editingISIN?'Bond updated ✅':'Bond added ✅');
+}
+
+// ===== CALENDAR =====
+function renderCalendar(){
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  document.getElementById('calTitle').textContent=MONTHS[m].toUpperCase()+' '+y;
+  document.getElementById('calFooterTitle').textContent=MONTHS_SHORT[m]+' '+y+' TOTAL';
+
+  const first=new Date(y,m,1);
+  const last=new Date(y,m+1,0);
+  const startDay=first.getDay();
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  // Group cashflow by date string
+  const cfMap={};
+  cashflow.forEach(c=>{
+    const d=c.payout_date;
+    if(!cfMap[d])cfMap[d]=[];
+    cfMap[d].push(c);
+  });
+
+  let html='';
+  // Prev month padding
+  for(let i=0;i<startDay;i++){
+    const d=new Date(y,m,1-startDay+i);
+    html+=`<div class="cal-cell empty-cell other-month"><div class="cal-day">${d.getDate()}</div></div>`;
+  }
+
+  // Current month days
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(y,m,d); dt.setHours(0,0,0,0);
+    const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entries=cfMap[key]||[];
+    const isToday=dt.getTime()===today.getTime();
+    let cls='cal-cell ';
+    let inner=`<div class="cal-day">${d}</div>`;
+
+    if(entries.length){
+      const hasPrincipal=entries.some(e=>e.face_value>0);
+      const total=entries.reduce((s,e)=>s+e.net_receivable,0);
+      const totalInt=entries.reduce((s,e)=>s+e.interest_amount,0);
+      const totalPrin=entries.reduce((s,e)=>s+e.face_value,0);
+
+      if(entries.length>1){
+        cls+='has-payout payout-multi';
+        inner+=`<div class="cal-amt amber">₹${Math.round(total).toLocaleString('en-IN')}</div>`;
+        inner+=`<div class="cal-bond-name">${entries.length} BONDS</div>`;
+      }else{
+        const e=entries[0];
+        const shortName=(e.bond_name||'').split(' ').slice(0,2).join(' ');
+        if(hasPrincipal){
+          cls+='has-payout payout-principal';
+          inner+=`<div class="cal-amt blue">₹${Math.round(total).toLocaleString('en-IN')}</div>`;
+        }else{
+          cls+='has-payout payout-interest';
+          inner+=`<div class="cal-amt green">₹${Math.round(total).toLocaleString('en-IN')}</div>`;
+        }
+        inner+=`<div class="cal-bond-name">${shortName}</div>`;
+      }
+      const allReceived=entries.every(e=>receivedMap[e.id]);
+      const someReceived=entries.some(e=>receivedMap[e.id]);
+      const tickDot=allReceived?`<div class="tick-dot"><svg viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3"/></svg></div>`:
+                    someReceived?`<div class="tick-dot" style="background:var(--amber);"><svg viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3"/></svg></div>`:'';
+      html+=`<div class="${cls}${isToday?' today':''}" onclick="openPayoutSheet('${key}')" style="position:relative;">${inner}${tickDot}</div>`;
+    }else{
+      html+=`<div class="cal-cell empty-cell${isToday?' today':''}">${inner}</div>`;
+    }
+  }
+
+  // Next month padding
+  const remaining=(7-((startDay+last.getDate())%7))%7;
+  for(let i=1;i<=remaining;i++){
+    html+=`<div class="cal-cell empty-cell other-month"><div class="cal-day">${i}</div></div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML=html;
+
+  // Footer totals
+  const monthCF=cashflow.filter(c=>{
+    const d=new Date(c.payout_date);
+    return d.getMonth()===m&&d.getFullYear()===y;
+  });
+  const fi=monthCF.reduce((s,c)=>s+c.interest_amount,0);
+  const fp=monthCF.reduce((s,c)=>s+c.face_value,0);
+  const fn=monthCF.reduce((s,c)=>s+c.net_receivable,0);
+  document.getElementById('calFI').textContent='₹'+Math.round(fi).toLocaleString('en-IN');
+  document.getElementById('calFP').textContent='₹'+Math.round(fp).toLocaleString('en-IN');
+  document.getElementById('calFN').textContent='₹'+Math.round(fn).toLocaleString('en-IN');
+}
+
+function changeMonth(delta){
+  calDate=new Date(calDate.getFullYear(),calDate.getMonth()+delta,1);
+  renderCalendar();
+}
+
+function toggleSummary(){
+  showToast('Monthly total shown at bottom');
+}
+
+function openPayoutSheet(dateKey){
+  const entries=cashflow.filter(c=>c.payout_date===dateKey);
+  if(!entries.length)return;
+  const dt=new Date(dateKey);
+  document.getElementById('payoutSheetDate').textContent=dt.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+
+  const html=entries.map((e,i)=>{
+    const col=COLORS[bonds.findIndex(b=>b.isin===e.bond_isin)%COLORS.length]||COLORS[i%COLORS.length];
+    const init=(e.bond_name||'?')[0].toUpperCase();
+    const isReceived=!!receivedMap[e.id];
+    const userNote=notesMap[e.id]||'';
+    return`<div class="payout-card" id="pc_${e.id.replace(/[^a-zA-Z0-9]/g,'_')}">
+      <div class="payout-card-top">
+        <div class="payout-avatar" style="background:${col}">${init}</div>
+        <div>
+          <div class="payout-name">${e.bond_name||e.bond_isin}</div>
+          <div class="payout-isin">${e.bond_isin} • ${bonds.find(b=>b.isin===e.bond_isin)?.credit_rating||''}</div>
+        </div>
+      </div>
+      <div class="payout-rows">
+        <div class="payout-row"><span class="pr-label">Interest</span><span class="pr-val g">₹ ${parseFloat(e.interest_amount||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</span></div>
+        ${e.face_value>0?`<div class="payout-row"><span class="pr-label">Principal</span><span class="pr-val b">₹ ${parseFloat(e.face_value||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</span></div>`:''}
+        <div class="payout-row"><span class="pr-label">TDS Deducted</span><span class="pr-val r">- ₹ ${parseFloat(e.tds_deducted||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</span></div>
+        <div class="payout-divider"></div>
+        <div class="payout-net"><span class="pn-label">NET RECEIVABLE</span><span class="pn-val">₹ ${parseFloat(e.net_receivable||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</span></div>
+      </div>
+      ${e.remarks?`<div class="payout-remark">⚠️ ${e.remarks}</div>`:''}
+
+      <!-- Payment Received Toggle -->
+      <div class="received-bar ${isReceived?'':'not-received'}" id="rb_${e.id.replace(/[^a-zA-Z0-9]/g,'_')}">
+        <span class="received-label">${isReceived?'✅ Payment Received':'⏳ Payment Pending'}</span>
+        <button class="tick-toggle ${isReceived?'done':'pending'}" onclick="toggleReceived('${e.id}','${dateKey}')" title="Mark as received">
+          ${isReceived?'✓':'○'}
+        </button>
+      </div>
+
+      <!-- User Note -->
+      <div class="note-box">
+        <div class="note-box-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Notes / Remarks
+        </div>
+        <textarea id="note_${e.id.replace(/[^a-zA-Z0-9]/g,'_')}" rows="2" placeholder="Add a note (e.g. credited to SBI on 7th…)" maxlength="300">${userNote}</textarea>
+        <button class="note-save-btn" onclick="saveNote('${e.id}','${dateKey}')">💾 Save Note</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('payoutSheetBody').innerHTML=html;
+  openSheet('payoutSheet');
+}
+
+function toggleReceived(cfId, dateKey){
+  receivedMap[cfId]=!receivedMap[cfId];
+  save();
+  // Update the bar in-place without full re-render
+  const safeId=cfId.replace(/[^a-zA-Z0-9]/g,'_');
+  const bar=document.getElementById('rb_'+safeId);
+  const btn=bar.querySelector('.tick-toggle');
+  const isNow=receivedMap[cfId];
+  bar.className='received-bar '+(isNow?'':'not-received');
+  bar.querySelector('.received-label').textContent=isNow?'✅ Payment Received':'⏳ Payment Pending';
+  btn.className='tick-toggle '+(isNow?'done':'pending');
+  btn.textContent=isNow?'✓':'○';
+  renderCalendar(); // refresh tick dots on calendar
+}
+
+function saveNote(cfId, dateKey){
+  const safeId=cfId.replace(/[^a-zA-Z0-9]/g,'_');
+  const ta=document.getElementById('note_'+safeId);
+  if(!ta)return;
+  notesMap[cfId]=ta.value.trim();
+  save();
+  showToast('Note saved ✅');
+}
+
+// ===== FORM 15H SHEET =====
+function showForm121(){
+  const html=bonds.map(b=>`<div style="background:var(--lavender);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--text-navy);">${b.bond_name||b.isin}</div>
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-sec-light);">${b.isin}</div>
+    </div>
+    <div style="text-align:right;">
+      ${b.form_121?`<div class="form15-badge form15-ok">✅ Submitted</div><div style="font-size:10px;color:var(--text-sec-light);margin-top:3px;">${b.form_121_fy}</div>`:`<div class="form15-badge form15-no">⚠️ Pending</div>`}
+    </div>
+  </div>`).join('');
+  document.getElementById('form121Body').innerHTML=bonds.length?html:'<div class="empty-state"><div class="ei">📋</div><h3>No bonds yet</h3></div>';
+  openSheet('form121Sheet');
+}
+
+// ===== EXPORT =====
+function exportData(){
+  const payload={bonds,cashflow,exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='BondPayoutTracker_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);
+  showToast('Data exported ✅');
+}
+
+function clearData(){
+  if(!confirm('Delete ALL bonds and cashflow data? This cannot be undone.'))return;
+  bonds=[];cashflow=[];save();
+  renderPortfolio();
+  showToast('All data cleared');
+}
+
+// ===== SWIPE TO CLOSE SHEETS =====
+document.querySelectorAll('.sheet-overlay').forEach(overlay=>{
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open');});
+});
+
+// ===== SWIPE TO CHANGE MONTH (calendar) =====
+(function(){
+  const wrapper = document.getElementById('calSwipeWrapper');
+  if(!wrapper) return;
+  let startX=0, startY=0, isSwiping=false;
+  wrapper.addEventListener('touchstart', e=>{
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isSwiping = true;
+  }, {passive:true});
+  wrapper.addEventListener('touchmove', e=>{
+    if(!isSwiping) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    // Only intercept if horizontal swipe is dominant
+    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10){
+      e.preventDefault();
+    }
+  }, {passive:false});
+  wrapper.addEventListener('touchend', e=>{
+    if(!isSwiping) return;
+    isSwiping = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50){
+      // Animate slide
+      wrapper.style.transition = 'transform 0.18s ease';
+      wrapper.style.transform = dx < 0 ? 'translateX(-30px)' : 'translateX(30px)';
+      wrapper.style.opacity = '0.5';
+      setTimeout(()=>{
+        changeMonth(dx < 0 ? 1 : -1);
+        wrapper.style.transition = 'none';
+        wrapper.style.transform = dx < 0 ? 'translateX(30px)' : 'translateX(-30px)';
+        wrapper.style.opacity = '0.5';
+        requestAnimationFrame(()=>{
+          requestAnimationFrame(()=>{
+            wrapper.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+            wrapper.style.transform = 'translateX(0)';
+            wrapper.style.opacity = '1';
+          });
+        });
+        setTimeout(()=>{ wrapper.style.transition=''; wrapper.style.transform=''; wrapper.style.opacity=''; }, 200);
+      }, 180);
+    }
+  }, {passive:true});
+})();
+
+// ===== INIT =====
+load();
+renderPortfolio();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+</script>
+</body>
+</html>
